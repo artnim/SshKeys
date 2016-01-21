@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -30,6 +31,8 @@ namespace SshKeys
         private string _amoredPrivateKey;
 
         private byte[] _privateKey;
+
+        private byte[] _publicKey;
 
         public KeyPairRSA(int keysize = 1024, string passphrase = null)
         {
@@ -114,27 +117,15 @@ namespace SshKeys
             get
             {
                 if (_privateKey != null) return _privateKey;
-                
-                _privateKey = GetPrivateKey();
+
+                var asnWriter = new Asn1Writer(0x800);
+                asnWriter.WriteInt(new byte[] {0x00}, _keyparams.Modulus, _keyparams.Exponent, _keyparams.D, _keyparams.P, _keyparams.Q, _keyparams.DP, _keyparams.DQ, _keyparams.InverseQ);
+
+                _privateKey = asnWriter.SequenceBytes;
 
                 return _privateKey;
 
             }
-        }
-
-        private byte[] GetPrivateKey()
-        {
-            var asnWriter = new Asn1Writer(0x800);
-            asnWriter.WriteInt(new byte[] {0x00});
-            asnWriter.WriteInt(_keyparams.Modulus);
-            asnWriter.WriteInt(_keyparams.Exponent);
-            asnWriter.WriteInt(_keyparams.D);
-            asnWriter.WriteInt(_keyparams.P);
-            asnWriter.WriteInt(_keyparams.Q);
-            asnWriter.WriteInt(_keyparams.DP);
-            asnWriter.WriteInt(_keyparams.InverseQ);
-
-            return asnWriter.SequenceBytes;
         }
 
         public string AmoredPrivateKey
@@ -143,44 +134,37 @@ namespace SshKeys
             {
                 if (_amoredPrivateKey != null) return _amoredPrivateKey;
 
-                _amoredPrivateKey = GetAmoredPrivateKey();
+                using (var writer = new StringWriter())
+                {
+                    writer.WriteLine(BEGIN);
+
+                    if (null != _passphrase)
+                    {
+                        writer.WriteLine(_header[0]);
+                        writer.WriteLine(_header[1], string.Join(null, Iv.Select(b => b.ToString("X"))));
+                        writer.WriteLine();
+                    }
+
+                    var prv = Convert.ToBase64String(EncryptedPrivateKey);
+
+                    var lines = string.Join(Environment.NewLine, Enumerable.Range(0, prv.Length / 64 + (prv.Length % 64 == 0 ? 0 : 1)).Select(i =>
+                    {
+                        var position = i * 64;
+                        var length = prv.Length - position > 64 ? 64 : prv.Length - position;
+
+                        return prv.Substring(position, length);
+                    }));
+
+                    writer.WriteLine(lines);
+
+                    writer.WriteLine(END);
+                    writer.Flush();
+
+                    _amoredPrivateKey = writer.ToString();
+                }
 
                 return _amoredPrivateKey;
             }
-        }
-
-        private string GetAmoredPrivateKey()
-        {
-            using (var writer = new StringWriter())
-            {
-                writer.WriteLine(BEGIN);
-
-                if (null != _passphrase)
-                {
-                    writer.WriteLine(_header[0]);
-                    writer.WriteLine(_header[1], string.Join(null, Iv.Select(b => b.ToString("X"))));
-                    writer.WriteLine();
-                }
-
-                var prv = Convert.ToBase64String(EncryptedPrivateKey);
-
-                var lines = string.Join(Environment.NewLine, Enumerable.Range(0, prv.Length / 64 + 1).Select(i =>
-                {
-                    var position = i * 64;
-                    var length = prv.Length - position > 64 ? 64 : prv.Length - position;
-
-                    return prv.Substring(position, length);
-                }));
-
-                writer.WriteLine(lines);
-
-                writer.WriteLine(END);
-                writer.Flush();
-
-                _amoredPrivateKey = writer.ToString();
-            }
-
-            return _amoredPrivateKey;
         }
 
         public byte[] EncryptedPrivateKey
@@ -202,6 +186,47 @@ namespace SshKeys
 
                 return cipher;
             }
+        }
+
+        private void WriteBytes(BinaryWriter writer, params byte[][] data)
+        {
+            foreach (var d in data)
+            {
+                var length = data.Length + (d[0] < 0x80 ? 0 : 1);
+                writer.Write(IPAddress.HostToNetworkOrder(length));
+
+                if (d[0] > 0x7f)
+                {
+                    writer.Write((byte) 0x00);
+                }
+
+                writer.Write(d);
+            }
+        }
+
+        public byte[] PublicKey
+        {
+            get
+            {
+                if (_publicKey != null) return _publicKey;
+                
+                using (var stream = new MemoryStream())
+                using (var writer = new BinaryWriter(stream))
+                {
+                    WriteBytes(writer, Encoding.Default.GetBytes("ssh-rsa"), _keyparams.Exponent, _keyparams.Modulus);
+                    writer.Flush();
+
+                    _publicKey = new byte[stream.Length];
+                    Array.Copy(stream.GetBuffer(), 0, _publicKey, 0, _publicKey.Length);
+                }
+
+                return _publicKey;
+            }
+        }
+
+        public string Base64PublicKey
+        {
+            get { return string.Format("ssh-rsa {0}", Convert.ToBase64String(PublicKey)); }
         }
     }
 }

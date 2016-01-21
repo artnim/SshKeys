@@ -52,10 +52,13 @@ namespace SshKeys
             }
         }
 
-        public void WriteInt(byte[] data)
+        public void WriteInt(params byte[][] data)
         {
-            _writer.Write((byte) 0x02);
-            _writer.WriteBytes(data);
+            foreach (var d in data)
+            {
+                _writer.Write((byte) 0x02);
+                _writer.WriteBytes(d);
+            }
         }
 
         internal static byte[] GetLength(byte[] data)
