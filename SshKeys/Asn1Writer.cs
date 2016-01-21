@@ -37,8 +37,10 @@ namespace SshKeys
                 using (var stream = new MemoryStream((int) _stream.Length + 0x10))
                 using (var writer = new BinaryWriter(stream))
                 {
-                    writer.Write((byte) 0x03);
-                    writer.WriteBytes(_stream.GetBuffer(), 0, (int) _stream.Length);
+                    writer.Write((byte) 0x30);
+                    var data = new byte[_stream.Length];
+                    Array.Copy(_stream.GetBuffer(), 0, data, 0, data.Length);
+                    writer.WriteBytes(data);
 
                     _data = new byte[stream.Length];
                     Array.Copy(stream.GetBuffer(), 0, _data, 0, (int) stream.Length);

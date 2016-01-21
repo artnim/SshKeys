@@ -5,7 +5,7 @@ namespace SshKeys
 {
     public static class BinaryWriterExtension
     {
-        public static void WriteBytes(this BinaryWriter writer, byte[] data, int index, int count)
+        public static void WriteBytes(this BinaryWriter writer, byte[] data)
         {
             writer.Write(Asn1Writer.GetLength(data));
 
@@ -14,12 +14,7 @@ namespace SshKeys
                 writer.Write((byte)0x00);
             }
 
-            writer.Write(data, index, count);
-        }
-
-        public static void WriteBytes(this BinaryWriter writer, byte[] data)
-        {
-            writer.WriteBytes(data, 0, data.Length);
+            writer.Write(data);
         }
     }
 }

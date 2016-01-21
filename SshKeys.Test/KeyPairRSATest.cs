@@ -21,5 +21,13 @@ namespace SshKeys.Test
 
             Expect(rsa.Key.Length, Is.EqualTo(24));
         }
+
+        [Test]
+        public void AmoredTest()
+        {
+            var rsa = new KeyPairRSA(2048);
+
+            var a = rsa.AmoredPrivateKey;
+        }
     }
 }
