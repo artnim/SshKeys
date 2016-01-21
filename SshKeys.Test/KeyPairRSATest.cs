@@ -25,7 +25,7 @@ namespace SshKeys.Test
         [Test]
         public void AmoredTest()
         {
-            var rsa = new KeyPairRSA(2048);
+            var rsa = new KeyPairRSA(2048, "StrengGeheim");
 
             var a = rsa.AmoredPrivateKey;
         }

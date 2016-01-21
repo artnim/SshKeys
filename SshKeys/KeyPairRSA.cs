@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Security;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -34,7 +35,7 @@ namespace SshKeys
         {
             var rsa = new RSACryptoServiceProvider(keysize);
             _keyparams = rsa.ExportParameters(true);
-            _passphrase = string.IsNullOrEmpty(passphrase) ? null : Encoding.Default.GetBytes(passphrase);
+            Passphrase = string.IsNullOrEmpty(passphrase) ? null : Encoding.Default.GetBytes(passphrase);
         }
 
         public byte[] Key
@@ -154,7 +155,14 @@ namespace SshKeys
             {
                 writer.WriteLine(BEGIN);
 
-                var prv = Convert.ToBase64String(PrivateKey);
+                if (null != _passphrase)
+                {
+                    writer.WriteLine(_header[0]);
+                    writer.WriteLine(_header[1], string.Join(null, Iv.Select(b => b.ToString("X"))));
+                    writer.WriteLine();
+                }
+
+                var prv = Convert.ToBase64String(EncryptedPrivateKey);
 
                 var lines = string.Join(Environment.NewLine, Enumerable.Range(0, prv.Length / 64 + 1).Select(i =>
                 {
@@ -173,6 +181,27 @@ namespace SshKeys
             }
 
             return _amoredPrivateKey;
+        }
+
+        public byte[] EncryptedPrivateKey
+        {
+            [MethodImpl(MethodImplOptions.Synchronized)]
+            get
+            {
+                if (null == _passphrase) return PrivateKey;
+
+                var tripleDes = new TripleDESCryptoServiceProvider() {Mode = CipherMode.CBC, Padding = PaddingMode.None};
+                var encryptor = tripleDes.CreateEncryptor(Key, Iv);
+
+
+                var clear = new byte[PrivateKey.Length % 24 != 0 ? (PrivateKey.Length / 24 + 1) * 24 : PrivateKey.Length];
+                Array.Copy(PrivateKey, 0, clear, 0, PrivateKey.Length);
+                var cipher = new byte[clear.Length];
+
+                encryptor.TransformBlock(clear, 0, clear.Length, cipher, 0);
+
+                return cipher;
+            }
         }
     }
 }
