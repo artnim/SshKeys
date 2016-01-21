@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SshKeys
 {
-    class KeyPairRSA
+    public class KeyPairRSA
     {
         private RSAParameters _keyparams;
 
