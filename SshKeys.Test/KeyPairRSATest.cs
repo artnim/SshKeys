@@ -30,5 +30,14 @@ namespace SshKeys.Test
             var a = rsa.AmoredPrivateKey;
             var b = rsa.Base64PublicKey;
         }
+
+        [Test]
+        public void FileTest()
+        {
+            var rsa = new KeyPairRSA();
+
+            rsa.WritePrivateKey(@"c:\Program Files\Siedle\Access AS 670-02\server\data\ssh\private.ossh");
+            rsa.WritePublicKey(@"c:\Program Files\Siedle\Access AS 670-02\server\data\ssh\public");
+        }
     }
 }
