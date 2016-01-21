@@ -20,15 +20,13 @@ namespace SshKeys.Test
             data[0] &= 0x7f;
             writer.WriteInt(data);
 
-            var actual = writer.GetSequence();
+            Expect(writer.SequenceBytes[7], Is.EqualTo(0));
 
-            Expect(actual[7], Is.EqualTo(0));
-
+            writer = new Asn1Writer(0x240);
             data[0] |= 0x80;
             writer.WriteInt(data);
 
-            actual = writer.GetSequence();
-            Expect(actual[7], Is.EqualTo(1));
+            Expect(writer.SequenceBytes[7], Is.EqualTo(1));
         }
     }
 }

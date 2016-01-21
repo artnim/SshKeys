@@ -46,6 +46,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Asn1WriterTest.cs" />
+    <Compile Include="KeyPairRSATest.cs" />
     <Compile Include="MemoryStreamTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

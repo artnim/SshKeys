@@ -9,9 +9,14 @@ namespace SshKeys
     public class Asn1Writer : IDisposable
     {
         private bool _disposed = false;
+
         private MemoryStream _stream;
 
         private BinaryWriter _writer;
+
+        private long _count;
+
+        private byte[] _data;
 
         public Asn1Writer(int initialSize)
         {
@@ -19,50 +24,39 @@ namespace SshKeys
             _writer = new BinaryWriter(_stream);
         }
 
-        public byte[] GetSequence()
+
+        public byte[] SequenceBytes
         {
-            try
+            get
             {
-                var data = new byte[_stream.Length];
-                Array.Copy(_stream.GetBuffer(), 0, data, 0, (int) _stream.Length);
+                if (_stream.Length == _count)
+                {
+                    return _data;
+                }
 
-                _writer.Seek(0, SeekOrigin.Begin);
-                _writer.Write((byte) 0x03);
-                WriteBytes(data);
+                using (var stream = new MemoryStream((int) _stream.Length + 0x10))
+                using (var writer = new BinaryWriter(stream))
+                {
+                    writer.Write((byte) 0x03);
+                    writer.WriteBytes(_stream.GetBuffer(), 0, (int) _stream.Length);
 
-                data = new byte[_stream.Length];
-                Array.Copy(_stream.GetBuffer(), 0, data, 0, (int) _stream.Length);
+                    _data = new byte[stream.Length];
+                    Array.Copy(stream.GetBuffer(), 0, _data, 0, (int) stream.Length);
 
-                return data;
-            }
-            finally
-            {
-                var initialSize = _stream.Capacity;
-                _writer.Close();
-                _stream = new MemoryStream(initialSize);
-                _writer = new BinaryWriter(_stream);
+                    _count = _stream.Length;
+
+                    return _data;
+                }
             }
         }
 
         public void WriteInt(byte[] data)
         {
             _writer.Write((byte) 0x02);
-            WriteBytes(data);
+            _writer.WriteBytes(data);
         }
 
-        private void WriteBytes(byte[] data)
-        {
-            _writer.Write(GetLength(data));
-
-            if (data[0] > 0x7f)
-            {
-                _writer.Write((byte) 0x00);
-            }
-
-            _writer.Write(data);
-        }
-
-        private static byte[] GetLength(byte[] data)
+        internal static byte[] GetLength(byte[] data)
         {
             var lengthBytes = new List<byte>();
 
