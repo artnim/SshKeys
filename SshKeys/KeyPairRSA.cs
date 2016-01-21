@@ -227,7 +227,8 @@ namespace SshKeys
                 using (var stream = new MemoryStream())
                 using (var writer = new BinaryWriter(stream))
                 {
-                    WritePublicKey(writer);
+                    WriteBytes(writer, Encoding.Default.GetBytes("ssh-rsa"), _keyparams.Exponent, _keyparams.Modulus);
+                    writer.Flush();
 
                     _publicKey = new byte[stream.Length];
                     Array.Copy(stream.GetBuffer(), 0, _publicKey, 0, _publicKey.Length);
@@ -240,16 +241,10 @@ namespace SshKeys
         public void WritePublicKey(string path)
         {
             using (var stream = new FileStream(path, FileMode.Create))
-            using (var writer = new BinaryWriter(stream))
+            using (var writer = new StreamWriter(stream))
             {
-                WritePublicKey(writer);
+                writer.WriteLine(Base64PublicKey);
             }
-        }
-
-        private void WritePublicKey(BinaryWriter writer)
-        {
-            WriteBytes(writer, Encoding.Default.GetBytes("ssh-rsa"), _keyparams.Exponent, _keyparams.Modulus);
-            writer.Flush();
         }
 
         public string Base64PublicKey
