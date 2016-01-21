@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshKeys", "SshKeys\SshKeys.csproj", "{482056AE-6EB0-47E8-BB71-9F4202227490}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SshKeys.Test", "SshKeys.Test\SshKeys.Test.csproj", "{6AA37E71-3319-4B21-B21B-8D71526AC5E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{482056AE-6EB0-47E8-BB71-9F4202227490}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{482056AE-6EB0-47E8-BB71-9F4202227490}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{482056AE-6EB0-47E8-BB71-9F4202227490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6AA37E71-3319-4B21-B21B-8D71526AC5E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6AA37E71-3319-4B21-B21B-8D71526AC5E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6AA37E71-3319-4B21-B21B-8D71526AC5E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6AA37E71-3319-4B21-B21B-8D71526AC5E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
