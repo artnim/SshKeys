@@ -207,7 +207,7 @@ namespace SshKeys
         {
             foreach (var d in data)
             {
-                var length = data.Length + (d[0] < 0x80 ? 0 : 1);
+                var length = d.Length + (d[0] < 0x80 ? 0 : 1);
                 writer.Write(IPAddress.HostToNetworkOrder(length));
 
                 if (d[0] > 0x7f)
