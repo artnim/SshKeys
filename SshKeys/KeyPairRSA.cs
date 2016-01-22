@@ -38,6 +38,7 @@ namespace SshKeys
         {
             var rsa = new RSACryptoServiceProvider(keysize);
             _keyparams = rsa.ExportParameters(true);
+            var x = rsa.ToXmlString(true);
             Passphrase = string.IsNullOrEmpty(passphrase) ? null : Encoding.Default.GetBytes(passphrase);
         }
 
