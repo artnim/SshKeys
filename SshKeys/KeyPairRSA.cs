@@ -162,7 +162,7 @@ namespace SshKeys
             if (null != _passphrase)
             {
                 writer.WriteLine(_header[0]);
-                writer.WriteLine(_header[1], string.Join(null, Iv.Select(b => b.ToString("X"))));
+                writer.WriteLine(_header[1], string.Join(null, Iv.Select(b => b.ToString("X2"))));
                 writer.WriteLine();
             }
 
